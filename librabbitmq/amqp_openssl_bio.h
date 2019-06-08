@@ -33,6 +33,10 @@ void amqp_openssl_bio_destroy(void);
 #define AMQP_OPENSSL_V110
 #endif
 
+#if (OPENSSL_VERSION_NUMBER >=  0x1010100fL)
+#define AMQP_OPENSSL_V111
+#endif
+
 #ifdef AMQP_OPENSSL_V110
 typedef const BIO_METHOD *BIO_METHOD_PTR;
 #else

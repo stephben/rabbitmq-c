@@ -348,7 +348,11 @@ amqp_socket_t *amqp_ssl_socket_new(amqp_connection_state_t state) {
     goto error;
   }
 
+#ifdef  AMQP_OPENSSL_V111
+  self->ctx = SSL_CTX_new(TLS_client_method());
+#else
   self->ctx = SSL_CTX_new(SSLv23_client_method());
+#endif
   if (!self->ctx) {
     goto error;
   }
@@ -570,6 +574,7 @@ static void ssl_locking_callback(int mode, int n, AMQP_UNUSED const char *file,
 static int setup_openssl(void) {
   int status;
 
+#ifndef AMQP_OPENSSL_V111
   int i;
   amqp_openssl_lockarray = calloc(CRYPTO_num_locks(), sizeof(pthread_mutex_t));
   if (!amqp_openssl_lockarray) {
@@ -589,6 +594,7 @@ static int setup_openssl(void) {
   }
   CRYPTO_set_id_callback(ssl_threadid_callback);
   CRYPTO_set_locking_callback(ssl_locking_callback);
+#endif
 
 #ifdef AMQP_OPENSSL_V110
   if (CONF_modules_load_file(
@@ -684,6 +690,7 @@ int amqp_uninitialize_ssl_library(void) {
   FIPS_mode_set(0);
 #endif
 
+#ifndef AMQP_OPENSSL_V111
   CRYPTO_set_locking_callback(NULL);
   CRYPTO_set_id_callback(NULL);
   {
@@ -693,6 +700,7 @@ int amqp_uninitialize_ssl_library(void) {
     }
     free(amqp_openssl_lockarray);
   }
+#endif
 
   ENGINE_cleanup();
   CONF_modules_free();
